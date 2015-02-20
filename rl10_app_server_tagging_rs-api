@@ -1,0 +1,97 @@
+#!/bin/bash -e
+
+# RightScript: RL10 App Server Tagger
+#
+# Description: 
+# Tag an RL10 enabled App Server to be Load Balancer discoverable using the rs-api tool.
+# This provides a lightweight approach for RL10 enabled servers.
+#
+# Prerequisites:
+# Need to run the "Install rs-api" rightscript to install the rs-api tool first.
+#
+# RightScale Installation Notes:
+# Create new RightScript and copy this file in as the script.
+# Click Identify and set the discovered inputs as follows:
+#   "1" - uncheck Enabled since this is an internal variable
+#   "APP_SERVER_LISTEN_IP" -
+#       Input Type: single value
+#       Default Value: Env:PRIVATE_IP
+#       Category (suggested): Application
+#       Input Description: The Application Server IP address to which the Load Balancer will forward traffic.
+#   "LB_POOLS" -
+#       Input Type: single value
+#       Default Value: text:default
+#       Category (suggested): Application
+#       Input Description: The Load Balancer pool configured on the load balancing tier.
+#   "LB_PORT" -
+#       Input Type: single value
+#       Default Value: None
+#       Category (suggested): Application
+#       Input Description: Port which is used to communicate between Load Balancer and Application Server.
+#   "SERVER_UUID" -
+#       Input Type: single value
+#       Default Value: Env:RS_INSTANCE_UUID
+#       Category (suggested): System
+#       Input Description: The server's unique ID.
+#
+# Author: Mitch Gerdisch <mitchell.gerdisch@rightscale.com>
+
+# Copyright (c) 2007-2008 by RightScale Inc., all rights reserved worldwide
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+#tag & verify function
+function tag_and_verify()
+{
+  local  tag=$1
+  echo "Adding server tag: $tag"
+  
+  rs_api_cmd="$HOME/bin/rs-api"
+
+  i="0"
+  while [ $i -lt 9 ]
+  do
+  
+    # Use the RL10 proxy to access the api
+    echo "ADD TAG COMMAND: ${rs_api_cmd} --rl10 tags multi_add \"resource_hrefs[]=$RS_SELF_HREF\" \"tags[]=$tag\""
+    ${rs_api_cmd} --rl10 tags multi_add "resource_hrefs[]=$RS_SELF_HREF" "tags[]=$tag"
+
+    sleep 3
+    current_tag=`${rs_api_cmd} --pretty --rl10 tags by_resource "resource_hrefs[]=$RS_SELF_HREF" | grep "$tag" || true`
+
+    if test "$current_tag" = "" ; then
+      echo "[$i] Failed to add tag. Sleep and retry..."
+    else
+      echo "[$i] Successfully added tag."
+      break
+    fi
+
+    sleep 17
+    i=$[$i+1]
+  done
+}
+
+# Install rs-api command tool
+installdir=$HOME/bin
+mkdir -p ${installdir}
+cd /tmp
+curl https://rightscale-binaries.s3.amazonaws.com/rsbin/rs-api/master/rs-api-linux-amd64.tgz | tar zxf -
+cp /tmp/rs-api/rs-api ${installdir}
+PATH+=":$installdir"
+
+# Add tags
+tag_and_verify "appserver:active=true"
+tag_and_verify "appserver:listen_ip=$APP_SERVER_LISTEN_IP"
+tag_and_verify "appserver:listen_port=$LB_PORT"
+tag_and_verify "server:uuid=$SERVER_UUID"
+tag_and_verify "loadbalancer:$LB_POOLS=app"
