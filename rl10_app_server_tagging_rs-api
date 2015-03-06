@@ -64,10 +64,10 @@ function tag_and_verify()
   
     # Use the RL10 proxy to access the api
     echo "ADD TAG COMMAND: ${rs_api_cmd} --rl10 tags multi_add \"resource_hrefs[]=$RS_SELF_HREF\" \"tags[]=$tag\""
-    ${rs_api_cmd} --rl10 tags multi_add "resource_hrefs[]=$RS_SELF_HREF" "tags[]=$tag"
+    ${rs_api_cmd} --rl10 multi_add tags "resource_hrefs[]=$RS_SELF_HREF" "tags[]=$tag"
 
     sleep 3
-    current_tag=`${rs_api_cmd} --pretty --rl10 tags by_resource "resource_hrefs[]=$RS_SELF_HREF" | grep "$tag" || true`
+    current_tag=`${rs_api_cmd} --pretty --rl10 by_resource tags "resource_hrefs[]=$RS_SELF_HREF" | grep "$tag" || true`
 
     if test "$current_tag" = "" ; then
       echo "[$i] Failed to add tag. Sleep and retry..."
