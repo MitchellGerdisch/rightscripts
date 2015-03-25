@@ -6,9 +6,6 @@
 # Tag an RL10 enabled App Server to be Load Balancer discoverable using the rs-api tool.
 # This provides a lightweight approach for RL10 enabled servers.
 #
-# Prerequisites:
-# Need to run the "Install rs-api" rightscript to install the rs-api tool first.
-#
 # RightScale Installation Notes:
 # Create new RightScript and copy this file in as the script.
 # Click Identify and set the discovered inputs as follows:
