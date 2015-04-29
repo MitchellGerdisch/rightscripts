@@ -9,6 +9,10 @@
 # The use-case is I have an alert set up to stop a server if some metric is triggered (e.g. low cpu utilization).
 # This way I don't spend money running a VM when the developer has decided to stop using the server for a while.
 #
+# INPUTS NOTES:
+#   $RS_SERVER - uncheck the enabled box since it's not modifiable by user
+#   $RSDEPLOYMENT - default to RS_DEPLOYMENT_NAME
+#
 # Author: Mitch Gerdisch <mitchell.gerdisch@rightscale.com>
 
 # Copyright (c) 2007-2008 by RightScale Inc., all rights reserved worldwide
