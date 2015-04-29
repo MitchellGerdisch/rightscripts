@@ -1,10 +1,10 @@
 #!/bin/bash -e
 
-# RightScript: Install rs-api tool.
+# RightScript: Install rsc command line API tool.
 #
-# Description: Installs rs-api tool.
+# Description: Installs rsc tool.
 # This is an all-in-one api tool that makes for a good api tool in RL10-enabled servers.
-# Run rs-api --help to learn more.
+# See https://github.com/rightscale/rsc for more information.
 #
 # Author: Mitch Gerdisch <mitchell.gerdisch@rightscale.com>
 
@@ -22,14 +22,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-installdir=$HOME/bin
-mkdir -p ${installdir}
+installDir="$HOME/bin"
+# ONLY SUPPORTS LINUX AT THIS TIME. See https://github.com/rightscale/rsc for other binaries
+rscBinariesLocation="https://binaries.rightscale.com/rsbin/rsc/v1/rsc-linux-amd64.tgz"
 
-cd /tmp
+mkdir -p ${installDir}
 
-curl https://rightscale-binaries.s3.amazonaws.com/rsbin/rs-api/master/rs-api-linux-amd64.tgz | tar zxf -
+cd ${installDir}
 
-cp /tmp/rs-api/rs-api ${installdir}
+curl ${rscBinariesLocation} |
+tar -zxf - -O rsc/rsc > rsc
+chmod +x ./rsc
 
-PATH+=":$installdir"
+
+PATH+=":${installDir}"
 
