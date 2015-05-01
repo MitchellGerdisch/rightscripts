@@ -38,10 +38,10 @@ deploymentName=$RSDEPLOYMENT
 rsAccount=$RS_ACCOUNT
 # CAN'T USE INSTANCE TOKEN SINCE IT DOESN'T HAVE NECESSARY PERMS: 
 # apiKey=`echo ${RS_API_TOKEN} | cut -d":" -f2` 
-# apiCmd="rsc --apiToken ${apiKey} -h ${rsHost} -a ${rsAccount}"
+# apiCmd="rsc --apiToken=${apiKey} -h ${rsHost} -a ${rsAccount}"
 # So, use a credential set up a priori containing a useful OAUTH token
 apiKey=$API_CREDENTIAL 
-apiCmd="rsc --k ${apiKey} -h ${rsHost} -a ${rsAccount}"
+apiCmd="rsc --key=${apiKey} -h ${rsHost} -a ${rsAccount}"
 
 #echo "apiCmd: ${apiCmd}"
 
