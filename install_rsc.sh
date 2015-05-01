@@ -22,18 +22,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-installDir="$HOME/bin"
+installDir="/usr/bin"
 # ONLY SUPPORTS LINUX AT THIS TIME. See https://github.com/rightscale/rsc for other binaries
 rscBinariesLocation="https://binaries.rightscale.com/rsbin/rsc/v1/rsc-linux-amd64.tgz"
 
-mkdir -p ${installDir}
+if [ ! -d $installDir ] ; then
+  mkdir -p ${installDir}
+else
+  echo "rsc install directory $installDir already exists. Skipping directory creation..."
+fi
 
 cd ${installDir}
 
-curl ${rscBinariesLocation} |
-tar -zxf - -O rsc/rsc > rsc
-chmod +x ./rsc
+if [ ! -f $installDir/rsc ]; then
+  curl --silent ${rscBinariesLocation} |
+  tar -zxf - -O rsc/rsc > rsc
+  chmod +x ./rsc
+else
+  echo "rsc already installed at $installDir. Skipping installation..."
+fi
 
-
-PATH+=":${installDir}"
+if [ ! -z `echo PATH|grep $installDir` ]; then
+  PATH+=":${installDir}"
+else
+  echo "rsc install directory is already in PATH. Skipping PATH update..."
+fi
 

@@ -9,9 +9,11 @@
 # The use-case is I have an alert set up to stop a server if some metric is triggered (e.g. low cpu utilization).
 # This way I don't spend money running a VM when the developer has decided to stop using the server for a while.
 #
-# INPUTS NOTES:
+# RIGHTSCRIPT SETUP NOTES:
+# When creating a rightscript with the contents of this file, set up the INPUTs as follows:
 #   $RS_SERVER - uncheck the enabled box since it's not modifiable by user
 #   $RSDEPLOYMENT - default to RS_DEPLOYMENT_NAME
+#   $API_CREDENTIAL - default to a credential called API_CREDENTIAL that contains an OAUTH token. 
 #
 # Author: Mitch Gerdisch <mitchell.gerdisch@rightscale.com>
 
@@ -29,16 +31,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Assumes installer placed the rsc command here
-PATH+=":$HOME/bin"
-
 # Gather up information from the RightScale environment variables
 rsHostShard=`echo $RS_SERVER | cut -d"." -f1`
 rsHost=$RS_SERVER
 deploymentName=$RSDEPLOYMENT 
 rsAccount=$RS_ACCOUNT
-apiKey=`echo ${RS_API_TOKEN} | cut -d":" -f2`  
-apiCmd="rsc -k ${apiKey} -h ${rsHost} -a ${rsAccount}"
+# CAN'T USE INSTANCE TOKEN SINCE IT DOESN'T HAVE NECESSARY PERMS: 
+# apiKey=`echo ${RS_API_TOKEN} | cut -d":" -f2` 
+# apiCmd="rsc --apiToken ${apiKey} -h ${rsHost} -a ${rsAccount}"
+# So, use a credential set up a priori containing a useful OAUTH token
+apiKey=$API_CREDENTIAL 
+apiCmd="rsc --k ${apiKey} -h ${rsHost} -a ${rsAccount}"
 
 #echo "apiCmd: ${apiCmd}"
 

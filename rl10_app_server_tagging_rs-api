@@ -1,5 +1,9 @@
 #!/bin/bash -e
 
+OUT OF DATE OUT OF DATE
+This script needs to be updated to use the "rsc" command instead of rs-api.
+It should be a straightforward drop in change, I just haven't done it and tested it yet.
+
 # RightScript: RL10 App Server Tagger
 #
 # Description: 
