@@ -22,7 +22,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-installDir="/usr/bin"
+installDir="/usr/local/bin"  # This is consistent with other RightLink tools
 # ONLY SUPPORTS LINUX AT THIS TIME. See https://github.com/rightscale/rsc for other binaries
 rscBinariesLocation="https://binaries.rightscale.com/rsbin/rsc/v1/rsc-linux-amd64.tgz"
 
