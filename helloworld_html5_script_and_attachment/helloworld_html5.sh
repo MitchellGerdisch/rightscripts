@@ -1,5 +1,9 @@
 #!/bin/sh
 # Copyright (c) 2015 by RightScale Inc., all rights reserved worldwide
+#
+# NOTES:
+#   Assumes the script is running as root.
+#   Ubuntu support is version 12 and earlier. Ubuntu 14 moves the default index file location.
 
 www_dir="/var/www/html"
 html5site_pkg="html5website.zip"
