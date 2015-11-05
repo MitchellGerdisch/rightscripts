@@ -1,9 +1,9 @@
-#!/bin/bash -e
+#!/bin/bash
 
 # RightScript: RL10 App Server Tagger
 #
 # Description: 
-# Tag an RL10 enabled App Server to be Load Balancer discoverable using the rs-api tool.
+# Tag an RL10 enabled App Server to be Load Balancer discoverable using the rsc tool.
 # This provides a lightweight approach for RL10 enabled servers.
 #
 # Prerequisites:
@@ -52,10 +52,16 @@
 # limitations under the License.
 
 #tag & verify function
+
+#!/bin/bash
+
 function tag_and_verify()
 {
   local  tag=$1
   echo "Adding server tag: $tag"
+  
+  RS_SELF_HREF=$(rsc --rl10 cm15 --x1 ':has(.rel:val("self")).href' index_instance_session /api/sessions/instance)
+
   
   rs_api_cmd="rsc"
 
