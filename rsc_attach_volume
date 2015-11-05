@@ -1,0 +1,26 @@
+#!/bin/sh
+
+#
+# INPUTS:
+#   $SNAPSHOT_ID: The ID of the snapshot to create the attached volume from. Generally of the form "snap-xxxxxx"
+#   $VOLUME_SIZE: The size in GB for the volume.
+
+
+rs_self_href=$(rsc --rl10 cm15 --x1 ':has(.rel:val("self")).href' index_instance_session /api/sessions/instance)
+zone_href=$(rsc --rl10 cm15 --x1 ':has(.rel:val("datacenter")).href' index_instance_session /api/sessions/instance)
+snapshot_href=$(rsc --rl10 cm15 --x1 ':has(.rel:val("self")).href' index /api/clouds/1/volume_snapshots "filter[]=resource_uid==$SNAPSHOT_ID")
+cloud_num=`echo ${rs_self_href} | cut -d"/" -f4`
+instance_id=`echo ${rs_self_href} | cut -d"/" -f6`
+volume_name="volume_${instance_id}"
+
+echo "snapshot href: ${snapshot_href}; instance_id: ${instance_id}"
+
+# Create the volume
+rsc --pp --rl10 cm15 create /api/clouds/${cloud_num}/volumes "volume[name]=${volume_name}" "volume[size]=$VOLUME_SIZE" "volume[datacenter_href]=${zone_href}" "volume[parent_volume_snapshot_href]=${snapshot_href}"
+
+# Find the volume href using the snapshot href from which it was - it's needed to do the attach
+volume_href=`rsc --rl10 cm15 --x1 ':has(.rel:val("self")).href' index /api/clouds/1/volumes "filter[]=name==$volume_name"`
+
+echo "volume_href: ${volume_href}"
+
+rsc --pp --rl10 cm15 create /api/clouds/${cloud_num}/volume_attachments "volume_attachment[instance_href]=${rs_self_href}" "volume_attachment[volume_href]=${volume_href}" "volume_attachment[device]=/dev/xvdb"
