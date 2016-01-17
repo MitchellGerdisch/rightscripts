@@ -1,0 +1,93 @@
+#!/usr/bin/sudo /bin/bash
+#
+# RightScript that installs a monitor script that returns a random value to collectd.
+#
+# Copyright RightScale, Inc. All rights reserved.
+# All access and use subject to the RightScale Terms of Service available at
+# http://www.rightscale.com/terms.php and, if applicable, other agreements
+# such as a RightScale Master Subscription Agreement.
+#
+
+# Setup platform specific configuration
+uname_output=`uname -a`
+echo ${uname_output} | grep -i "ubuntu"
+if [ $? -eq 0 ]
+then
+    rs_distro="ubuntu"
+else
+   echo ${uname_output} | grep -i "centos"
+   if [ $? -eq 0 ]
+   then
+    rs_distro="centos"
+   else
+    rs_distro="unknown"
+   fi
+fi
+
+case "$rs_distro" in
+  ubuntu)
+    config="/etc/collectd/collectd.conf"
+    plugin_config_dir="/etc/collectd/plugins"
+    lib_dir="/usr/lib/collectd"
+    ;;
+  centos)
+    config="/etc/collectd.conf"
+    plugin_config_dir="/etc/collectd.d"
+    lib_dir="/usr/lib/collectd"
+    ;;
+  *)
+    logger -s -t RightScale "Monitoring not supported for platform: $RS_DISTRO. exiting..."
+    exit 0
+    ;;
+esac
+
+    
+plugin_script_name="rsc_hydration_monitor.sh"
+
+
+# Install the script
+echo -n "Installing collectd plugin ..."
+mkdir -p $lib_dir/plugins
+
+# Create the monitor script 
+cat << EOL > $lib_dir/plugins/$plugin_script_name
+#!/usr/bin/sudo /bin/bash
+
+if [ \$# -ne 2 ]
+then
+        echo "USAGE: \$0 SERVER_UUID REHYDRATION_PERIOD_IN_DAYS"
+        exit 1
+fi
+
+server_uuid=\${1}
+rehydration_period=\$((\${2}*86400))
+instance_creation_date=\$(rsc --pp --rl10 --x1 '.created_at' cm15 index_instance_session /api/sessions/instance)
+instance_creation_epoch_date=\$(date -d"\${instance_creation_date}" +%s)
+instance_rehydration_date=\$((instance_creation_epoch_date+rehydration_period))
+
+# Every 20 seconds check if the site has the expected text
+while sleep 20
+do
+    todays_date=\$(date +%s)
+    seconds_to_go=\$((instance_rehydration_date-todays_date))
+    days_to_go=\$((seconds_to_go/86400))
+    currtime=`date +%s`
+    echo "PUTVAL \${server_uuid}/rehydration/gauge-days_to_go \${todays_date}:\${days_to_go}"
+done
+EOL
+
+chmod 775 $lib_dir/plugins/$plugin_script_name
+echo "Done"
+echo
+
+# Create the collectd configuration
+echo "Configuring collectd..."
+cat << EOF > $plugin_config_dir/$plugin_script_name.conf
+LoadPlugin "exec"
+<Plugin "exec">
+  Exec "rightscale" "$lib_dir/plugins/$plugin_script_name" "$SERVER_UUID" "$HYDRATION_PERIOD"
+</Plugin>
+EOF
+
+# Restart the service
+service collectd restart
