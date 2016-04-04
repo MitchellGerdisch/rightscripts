@@ -31,3 +31,6 @@ with open('/etc/vscale.conf.new','w') as new_vscale_conf_file:
 # Backup the existing vscale.conf file and apply the new file
 copyfile('/etc/vscale.conf', '/etc/vscale.conf.old')
 copyfile('/etc/vscale.conf.new', '/etc/vscale.conf')
+
+# Restart the RCA-V service so the changes to the config file are properly picked up.
+os.system('service vscale restart')
