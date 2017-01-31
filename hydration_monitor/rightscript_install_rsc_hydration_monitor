@@ -1,6 +1,10 @@
 #!/usr/bin/sudo /bin/bash
 #
-# RightScript that installs a monitor script that returns a random value to collectd.
+# RightScript that installs a monitor script that returns "days to go" until a date is reached.
+# Takes two inputs:
+#   REHYDRATION_PERIOD - The script calculates the date that is this many days after the creation date and then starts ticking down from there.
+#                        Presumably when it reaches 0 or some other target point, an alert is defined to fire.
+#   $SERVER_UUID - This should be set to default to the env:RS_INSTANCE_UUID
 #
 # Copyright RightScale, Inc. All rights reserved.
 # All access and use subject to the RightScale Terms of Service available at
@@ -49,7 +53,9 @@ plugin_script_name="rsc_hydration_monitor.sh"
 echo -n "Installing collectd plugin ..."
 mkdir -p $lib_dir/plugins
 
-# Create the monitor script 
+####
+#  Create the monitor script 
+####
 cat << EOL > $lib_dir/plugins/$plugin_script_name
 #!/usr/bin/sudo /bin/bash
 
@@ -65,7 +71,7 @@ instance_creation_date=\$(rsc --pp --rl10 --x1 '.created_at' cm15 index_instance
 instance_creation_epoch_date=\$(date -d"\${instance_creation_date}" +%s)
 instance_rehydration_date=\$((instance_creation_epoch_date+rehydration_period))
 
-# Every 20 seconds check if the site has the expected text
+# Return status every 20 seconds - way too often really
 while sleep 20
 do
     todays_date=\$(date +%s)
@@ -79,7 +85,11 @@ EOL
 chmod 775 $lib_dir/plugins/$plugin_script_name
 echo "Done"
 echo
+### END OF MONITOR SCRIPT CREATION ###
 
+###
+# INSTALL MONITOR SCRIPT INTO COLLECTD MONITORING INFRASTRUCTURE
+###
 # Create the collectd configuration
 echo "Configuring collectd..."
 cat << EOF > $plugin_config_dir/$plugin_script_name.conf
